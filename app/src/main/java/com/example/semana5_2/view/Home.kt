@@ -1,11 +1,13 @@
 package com.example.semana5_2.view
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -38,6 +40,9 @@ fun Home(saveScreen: NavHostController, context: Context, viewModel: UserViewMod
         var textName by remember { mutableStateOf("") }
         var textEmail by remember { mutableStateOf("") }
         var textAge by remember { mutableStateOf("") }
+        var nameError by remember { mutableStateOf(false) }
+        var ageError by remember { mutableStateOf(false) }
+        var emailError by remember { mutableStateOf(false) }
 
         Text(
             text = "CRUD - ROOM",
@@ -51,9 +56,11 @@ fun Home(saveScreen: NavHostController, context: Context, viewModel: UserViewMod
             modifier = Modifier
                 .padding(vertical = 8.dp)
                 .fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
             label = {Text(text = "Name")},
             placeholder = {Text(text = "Insert your name")},
-            onValueChange = {textName = it}
+            isError = nameError,
+            onValueChange = { textName = it; nameError = false }
         )
 
         OutlinedTextField(
@@ -61,9 +68,11 @@ fun Home(saveScreen: NavHostController, context: Context, viewModel: UserViewMod
             modifier = Modifier
                 .padding(vertical = 8.dp)
                 .fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
             label = {Text(text = "Age")},
             placeholder = {Text(text = "Insert your Age")},
-            onValueChange = {textAge = it}
+            isError = ageError,
+            onValueChange = { textAge = it.filter { c -> c.isDigit() }; ageError = false }
         )
 
         OutlinedTextField(
@@ -71,24 +80,33 @@ fun Home(saveScreen: NavHostController, context: Context, viewModel: UserViewMod
             modifier = Modifier
                 .padding(vertical = 8.dp)
                 .fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
             label = {Text(text = "Email")},
             placeholder = {Text(text = "Insert your Email")},
-            onValueChange = {textEmail = it}
+            isError = emailError,
+            onValueChange = { textEmail = it; emailError = false }
         )
 
         ElevatedButton(
             onClick = {
-                viewModel.addUser(
-                    context, User(
-                        0,
-                        textName.toString(),
-                        textAge.toInt(),
-                        textEmail.toString()
+                val ageInt = textAge.toIntOrNull()
+                nameError = textName.isBlank()
+                ageError = ageInt == null
+                emailError = textEmail.isBlank()
+                if (!nameError && !ageError && !emailError) {
+                    viewModel.addUser(
+                        context, User(
+                            0,
+                            textName.trim(),
+                            ageInt!!,
+                            textEmail.trim()
+                        )
                     )
-                )
-                textName = ""
-                textAge = ""
-                textEmail = ""
+                    Toast.makeText(context, "user save correctly", Toast.LENGTH_SHORT).show()
+                    textName = ""; textAge = ""; textEmail = ""
+                } else {
+                    Toast.makeText(context, "Complete the fields correctly", Toast.LENGTH_SHORT).show()
+                }
             },
             modifier = Modifier.padding(top = 16.dp)
         ) {
@@ -96,6 +114,18 @@ fun Home(saveScreen: NavHostController, context: Context, viewModel: UserViewMod
                 text = "Save User",
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp
+            )
+        }
+
+        ElevatedButton(
+            onClick = {
+                saveScreen.navigate("V2")
+            }
+        ) {
+            Text(
+                text = "List Users",
+                fontSize =  20.sp,
+                fontWeight = FontWeight.Bold
             )
         }
     }

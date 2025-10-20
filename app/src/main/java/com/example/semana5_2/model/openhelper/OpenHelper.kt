@@ -16,7 +16,6 @@ class OpenHelper(context: Context): SQLiteOpenHelper(
     override fun onCreate(p0: SQLiteDatabase?) {
         val query="CREATE TABLE Users(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INTEGER, email TEXT)"
         p0!!.execSQL(query)
-        //p0?.execSQL(query)
     }
 
     /*
@@ -73,5 +72,36 @@ class OpenHelper(context: Context): SQLiteOpenHelper(
         result.close()
         db.close()
         return listUser
+    }
+
+    /*
+    * This function is used to update an existing user in the database
+    * It receives a User object as a parameter
+    * and the writableDatabase property to get a writable database
+    * It returns true if the user was updated, false otherwise
+    * */
+    fun updateUser(user: User): Boolean {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put("name", user.name)
+            put("age", user.age)
+            put("email", user.email)
+        }
+        val rows = db.update("Users", values, "id = ?", arrayOf(user.id.toString()))
+        db.close()
+        return rows > 0
+    }
+
+    /*
+    * This function is used to delete a user from the database
+    * It receives the user id as a parameter
+    * and the writableDatabase property to get a writable database
+    * It returns true if the user was deleted, false otherwise
+    * */
+    fun deleteUser(id: Int): Boolean {
+        val db = this.writableDatabase
+        val rows = db.delete("Users", "id = ?", arrayOf(id.toString()))
+        db.close()
+        return rows > 0
     }
 }
